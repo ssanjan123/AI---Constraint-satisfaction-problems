@@ -1,21 +1,22 @@
 ##from utils import argmin_random_tie, count, first
 ##mport search
 
+from ctypes import sizeof
 import random
-
-
-
-
-
-
-
+import matplotlib.pyplot as plt
 
 
 
 ##Configurable Parameters/Global Variables
+###############################################
 populationSize = 100
 k = 4 ##How many times will the tournament run
-colors = (0,1,2,3,4)
+colors = (0,1,2,3)
+probability = 0.01
+numberOfGeneration = 8
+#############################################
+#############################################
+#Tests and plot a Graph
 
 def getNodes():
     f = open("state_neighbours.txt")
@@ -31,18 +32,17 @@ class States:
 
 # Creates an adjacency matrix representing all the States
     #AB BC MB NB NL NS NT NU ON.......
-# AB  
-# BC  
-# MB  
-# NB  
-# NL  
-# NS  
-# NT  
-# NU  
-# ON  
+# AB  0 1  0  1.....
+# BC  1 0  1  0.....
+# MB  0
+# NB  1
+# NL  .
+# NS  .
+# NT  .
+# NU  .
+# ON  .
 #...
 def AdjacencyMatrix(AllStates):
-
     n = getNodes() ##nodes of the graph (64 states)
     graph = []
     for obj1 in AllStates:
@@ -58,13 +58,10 @@ def AdjacencyMatrix(AllStates):
             graph[i][j] = graph[j][i]
     for i in range(n):
         graph[i][i] = 0
-    for v in graph:
-        print(v)
     return graph
     
 def StartState():
     f = open("state_neighbours.txt")
-    ##print(f.read())
     AllStates = []
     for line in f:
         l2 = line
@@ -72,18 +69,11 @@ def StartState():
             AdjacentList = (l2.split(None, 1)[1]).split()
         except IndexError:
             AdjacentList = ['']
-        AllStates.append(States(line.split(None, 1)[0],(random.randint(0, 3)),AdjacentList))
+        AllStates.append(States(line.split(None, 1)[0],(random.choice(colors)),AdjacentList))
     return AllStates
 
 
-############ Graph G(V,E)
-graph = AdjacencyMatrix(StartState()) #here graph is our
-######## adjacency matrix with vertices and edged having 0 or 1
-
-
 def createInitialPopulation():
-    
-    ##generation = 0
     population = []
     for i in range(populationSize):
         chromosome = StartState()
@@ -92,6 +82,7 @@ def createInitialPopulation():
 
 
 def fitness(chromosome): 
+    graph = AdjacencyMatrix(chromosome) 
     n = getNodes()
     edges = 0
     nonViolatingEdge = 0
@@ -109,32 +100,58 @@ def fitness(chromosome):
 
 def TournamentSelection(population):
     parents = []
-    for j in range(k):
+    for i in range(0, populationSize-1, k):
         random.shuffle(population)
-        for i in range(0, populationSize-1, k):
-            if fitness(population[i]) > fitness(population[i+1]):
-                parents.append(population[i])
-            else:
-                parents.append(population[i+1])
+        if fitness(population[i]) > fitness(population[i+1]):
+            parents.append(population[i])
+        else:
+            parents.append(population[i+1])
     return parents
 
 def crossover(parent1, parent2):
     n = getNodes()
-    position = random.randint(2, n-2)
+    position = random.randint(1, n-2)
     child1 = []
     child2 = []
-    for i in range(position+1):
+    for i in range(position):
         child1.append(parent1[i])
         child2.append(parent2[i])
-    for i in range(position+1, n):
+    for i in range(position, n):
         child1.append(parent2[i])
         child2.append(parent1[i])
     return child1, child2
 
-def produceNewGen(parents):
-    newChromosome = []
-    #for i in range(populationSize):
 
+def produceNewGen(parents):
+    newPopulation = []
+    while len(newPopulation) < populationSize:
+        ## choose random parents
+        random.shuffle(parents)
+        x = parents[:int((len(parents)+1)*.50)]
+        y = parents[int((len(parents)+1)*.50):]
+        i = min(len(x),len(y))
+        for j in range(i):
+            if(len(newPopulation) == populationSize):
+                return newPopulation
+            newPopulation.extend(crossover(x[j],y[j]))
+    return newPopulation         
+
+def mutation(chromosome):
+    n= getNodes()
+    for i in range(n):
+        check = random.uniform(0, 1) ## checks probability the higher this value the lower the chance of mutation
+        if(check <= probability):
+            chromosome[i].color = random.choice(colors)
+    return chromosome
+
+def mutateAll(population):
+    mutatedPopulation =[]
+    for i in range(populationSize):
+        mutatedPopulation.append(mutation(population[i]))
+    return mutatedPopulation
+    
+def Average(lst):
+    return sum(lst) / len(lst)
 
 
 def a():
@@ -151,26 +168,86 @@ def divide():
     k = 1/n 
     return k   
     
-def test1():
-    n = divide()
-    print(n)
+def test1(pow):
+    pow = [2]
+    
+    
 
 def main():
-    AllStates = StartState()
-    
-    for obj in AllStates:
-        print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
-    adj = AdjacencyMatrix(AllStates)
+    bestFit = None
+    avgFit = None
+    worstFit = None
+    fitlist =[]
+    oldPopulation = createInitialPopulation()
+    for i in range(numberOfGeneration):
+        print("Generation #",i)
+        for j in range(populationSize):
+            fit = fitness(oldPopulation[j])
+            fitlist.append(fit)
+            if(fit == 1.0):
+                bestFit = 1.0
+                worstfit = min(fitlist)
+                avgFit = Average(fitlist)
+                print("Solution found!!")
+                for obj in oldPopulation[j]:
+                    print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
+                print("Best fitness:", bestFit)
+                print("Worst fitness:", worstFit)
+                print("Average fitness:", avgFit)
+                return bestFit,avgFit,worstFit
+        newparents = TournamentSelection(oldPopulation)
+        for j in range(len(newparents)):
+            fit = fitness(newparents[j])
+            fitlist.append(fit)
+            if(fit == 1.0):
+                bestFit = 1.0
+                worstfit = min(fitlist)
+                avgFit = Average(fitlist)
+                print("Solution found!!")
+                for obj in newparents[j]:
+                    print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
+                print("Best fitness:", bestFit)
+                print("Worst fitness:", worstfit)
+                print("Average fitness:", avgFit)
+                return bestFit,avgFit,worstfit
+        newPopulations = produceNewGen(newparents)
+        for j in range(populationSize):
+            fit = fitness(newPopulations[j])
+            fitlist.append(fit)
+            if(fit == 1.0):
+                bestFit = 1.0
+                worstfit = min(fitlist)
+                avgFit = Average(fitlist)
+                print("Solution found!!")
+                for obj in newPopulations[j]:
+                    print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
+                print("Best fitness:", bestFit)
+                print("Worst fitness:", worstfit)
+                print("Average fitness:", avgFit)
+                return bestFit,avgFit,worstfit
+        mutatedPopulation = mutateAll(newPopulations)
+        oldPopulation = mutatedPopulation
+        bestFit = max(fitlist)
+        worstfit = min(fitlist)
+        avgFit = Average(fitlist)
+        print("Best fitness:", bestFit)
+        print("Worst fitness:", worstfit)
+        print("Average fitness:", avgFit)
+    for j in range(populationSize):
+            fit = fitness(oldPopulation[j])
+            fitlist.append(fit)
+            if(fit == 1.0):
+                bestFit = 1.0
+                worstfit = min(fitlist)
+                avgFit = Average(fitlist)
+                print("Solution found!!")
+                for obj in oldPopulation[j]:
+                    print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
+                print("Best fitness:", bestFit)
+                print("Worst fitness:", worstfit)
+                print("Average fitness:", avgFit)
+                return bestFit,avgFit,worstfit
+    return bestFit,avgFit,worstfit      
 
-    e = fitness(AllStates)
-    print(e)
-
-    newpop = TournamentSelection(createInitialPopulation())
-    for obj in newpop:
-        for i in obj:
-            print(i.stateName)
 
 main()
-#test1()
-#a()
-##graph2()
