@@ -1,22 +1,20 @@
-##from utils import argmin_random_tie, count, first
-##mport search
-
+from cProfile import label
 from ctypes import sizeof
 import random
+import numpy as np
 import matplotlib.pyplot as plt
 
 
-
-##Configurable Parameters/Global Variables
+##Configurable Parameters/Global Variables - Change these when testing each case
 ###############################################
-populationSize = 100
-k = 4 ##How many times will the tournament run
+populationSize = 10
+k = 2 ##How many times will the tournament run
 colors = (0,1,2,3)
-probability = 0.01
-numberOfGeneration = 8
+mutationRate = 0.01
+numberOfGenerations = 35 ##getdata has a parameter for this so can be customizable there as well
 #############################################
 #############################################
-#Tests and plot a Graph
+
 
 def getNodes():
     f = open("state_neighbours.txt")
@@ -139,8 +137,8 @@ def produceNewGen(parents):
 def mutation(chromosome):
     n= getNodes()
     for i in range(n):
-        check = random.uniform(0, 1) ## checks probability the higher this value the lower the chance of mutation
-        if(check <= probability):
+        check = random.uniform(0, 1) ## checks mutationRate the higher this value the lower the chance of mutation
+        if(check <= mutationRate):
             chromosome[i].color = random.choice(colors)
     return chromosome
 
@@ -153,34 +151,17 @@ def mutateAll(population):
 def Average(lst):
     return sum(lst) / len(lst)
 
-
-def a():
-    color = ["red","green","blue","yellow"]
-    
-    AllStates = StartState()
-    AdjacencyMatrix(AllStates)
-    # for obj in AllStates:
-    #     print(obj.stateName, obj.color,obj.adjacentStates, sep =' ' )
-    
-    
-def divide():
-    n = 2
-    k = 1/n 
-    return k   
-    
-def test1(pow):
-    pow = [2]
-    
     
 
-def main():
+def getData(numberOfGenerations,willPrint):
     bestFit = None
     avgFit = None
     worstFit = None
     fitlist =[]
     oldPopulation = createInitialPopulation()
-    for i in range(numberOfGeneration):
-        print("Generation #",i)
+    for i in range(numberOfGenerations):
+        if(willPrint == True):
+            print("Generation #",i)
         for j in range(populationSize):
             fit = fitness(oldPopulation[j])
             fitlist.append(fit)
@@ -230,9 +211,10 @@ def main():
         bestFit = max(fitlist)
         worstfit = min(fitlist)
         avgFit = Average(fitlist)
-        print("Best fitness:", bestFit)
-        print("Worst fitness:", worstfit)
-        print("Average fitness:", avgFit)
+        if(willPrint == True):
+            print("Best fitness:", bestFit)
+            print("Worst fitness:", worstfit)
+            print("Average fitness:", avgFit)
     for j in range(populationSize):
             fit = fitness(oldPopulation[j])
             fitlist.append(fit)
@@ -250,4 +232,38 @@ def main():
     return bestFit,avgFit,worstfit      
 
 
-main()
+
+def plot():
+    yBest = []
+    yAverage = []
+    yWorst = []
+    xRange = 35 ##Here put the number for how many generations you want for the x axis - By default setting it to 35
+    for i in range(xRange): 
+        t = getData(i+1,False) 
+        yBest.append(t[0])
+        yAverage.append(t[1])
+        yWorst.append(t[2])
+        if(t[0] == 1):
+            plt.plot(len(yBest), yBest, label = "Best")
+            plt.plot(len(yAverage), yAverage, label = "Average")
+            plt.plot(len(yWorst), yWorst, label = "Worst")
+            plt.xlabel("Generation")
+            plt.ylabel("Fitness")
+            plt.legend()
+            plt.show()
+            return
+    xGeneration = list(range(1,xRange+1))
+    plt.plot(xGeneration, yBest, label = "Best")
+    plt.plot(xGeneration, yAverage, label = "Average")
+    plt.plot(xGeneration, yWorst, label = "Worst")
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness")
+    plt.legend()
+    plt.show()
+####################################################
+##Printing each test Cases - Change the Configurables above at the beginning to get different scenarios
+def testCases(): 
+    print(getData(50,False))
+###################################################
+####Graph plot with this
+plot()
