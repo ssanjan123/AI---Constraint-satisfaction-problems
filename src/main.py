@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 
 ##Configurable Parameters/Global Variables - Change these when testing each case
 ###############################################
-populationSize = 10
-k = 2 ##How many times will the tournament run
+populationSize = 200
+k = 5 ##How many times will the tournament run
 colors = (0,1,2,3)
-mutationRate = 0.01
+mutationRate = 0.5
 numberOfGenerations = 35 ##getdata has a parameter for this so can be customizable there as well
 #############################################
 #############################################
@@ -122,9 +122,10 @@ def crossover(parent1, parent2):
 
 def produceNewGen(parents):
     newPopulation = []
+    random.shuffle(parents)
     while len(newPopulation) < populationSize:
         ## choose random parents
-        random.shuffle(parents)
+        
         x = parents[:int((len(parents)+1)*.50)]
         y = parents[int((len(parents)+1)*.50):]
         i = min(len(x),len(y))
@@ -133,6 +134,12 @@ def produceNewGen(parents):
                 return newPopulation
             newPopulation.extend(crossover(x[j],y[j]))
     return newPopulation         
+
+def Average(lst):
+    return sum(lst) / len(lst)
+
+    
+
 
 def mutation(chromosome):
     n= getNodes()
@@ -148,8 +155,20 @@ def mutateAll(population):
         mutatedPopulation.append(mutation(population[i]))
     return mutatedPopulation
     
-def Average(lst):
-    return sum(lst) / len(lst)
+# def testProducedNewGen():
+#     population = createInitialPopulation()
+#     #prints average fitness of the population
+#     print("old population fitness:", Average([fitness(x) for x in population]))
+#     #print(Average(fitness(chromosome) for chromosome in population))
+#     parents = TournamentSelection(population)
+#     newPopulation = produceNewGen(parents)
+#     #prints max fitness of the parents
+#     print("New population fitness:", Average([fitness(x) for x in newPopulation]))
+#     mutatedPopulation = mutateAll(newPopulation)
+#     print("Mutated population fitness:", Average([fitness(x) for x in mutatedPopulation]))
+
+
+# testProducedNewGen()
 
     
 
@@ -207,8 +226,16 @@ def getData(numberOfGenerations,willPrint):
                 print("Average fitness:", avgFit)
                 return bestFit,avgFit,worstfit
         mutatedPopulation = mutateAll(newPopulations)
-        oldPopulation = mutatedPopulation
+        #Check if fitness of mutatedPopulation is greater than
+        #fitness of oldPopulation
+        #maxFitness = max([fitness(x) for x in mutatedPopulation])
+        # if max([fitness(x) for x in newPopulations]) < max([fitness(x) for x in mutatedPopulation]):
+        #     oldPopulation = mutatedPopulation
+        # else:
+        #     oldPopulation = newPopulations
+        oldPopulation = mutatedPopulation    
         bestFit = max(fitlist)
+        print("Best fitness:", bestFit)
         worstfit = min(fitlist)
         avgFit = Average(fitlist)
         if(willPrint == True):
@@ -237,7 +264,7 @@ def plot():
     yBest = []
     yAverage = []
     yWorst = []
-    xRange = 35 ##Here put the number for how many generations you want for the x axis - By default setting it to 35
+    xRange = 20 ##Here put the number for how many generations you want for the x axis - By default setting it to 35
     for i in range(xRange): 
         t = getData(i+1,False) 
         yBest.append(t[0])
@@ -263,7 +290,10 @@ def plot():
 ####################################################
 ##Printing each test Cases - Change the Configurables above at the beginning to get different scenarios
 def testCases(): 
-    print(getData(50,False))
+    print(getData(500,False))
 ###################################################
 ####Graph plot with this
-plot()
+#plot()
+
+
+testCases()
