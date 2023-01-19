@@ -1,5 +1,5 @@
 # Map Coloring Problem
-![image](https://user-images.githubusercontent.com/84153519/213347217-5a3c0356-5b07-4b49-bc2c-7306f6390e04.png)
+![image](https://user-images.githubusercontent.com/84153519/213347217-5a3c0356-5b07-4b49-bc2c-7306f6390e04.png?s=500)
 
 
 This repository contains a solution to the map coloring problem using the genetic algorithm. The problem statement is as follows:
