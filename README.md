@@ -1,5 +1,5 @@
 # Map Coloring Problem
-<img src="https://user-images.githubusercontent.com/84153519/213347217-5a3c0356-5b07-4b49-bc2c-7306f6390e04.png" width="500" height="300">
+<img src="https://user-images.githubusercontent.com/84153519/213347217-5a3c0356-5b07-4b49-bc2c-7306f6390e04.png" width="500" height="400">
 
 
 
